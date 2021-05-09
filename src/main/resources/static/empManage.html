@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>员工管理</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <script src="js/axios.min.js"></script>
+        <script src="lib/layui/layui.all.js"></script>
+        <link rel="stylesheet" href="lib/layui/css/layui.css">
+        <script src="/js/jquery.slim.min.js"></script>
+        <link rel="stylesheet" href="/css/bootstrap.css">
+        <script src="js/bootstrap.js"></script>
+        <script src="js/xadmin.js"></script>
+
+        <style>
+            .layui-table-cell{
+                height:36px;
+                line-height: 36px;
+            }.layui-form-label{
+                 width: 100px;
+             }
+
+        </style>
+
+        <!--[if lt IE 9]>
+          <script src="js/html5.min.js"></script>
+          <script src="js/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15" style="margin-top: 20px">
+
+                <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+
+                <div class="input-group col-lg-4">
+                    <input type="text" class="form-control" placeholder="关键字" name="likeName">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" onclick="like()">查询!</button>
+                    </span>
+                </div><!-- /input-group -->
+                <div class="layui-col-md12">
+                    <div class="layui-card" id="main">
+                        <div class="layui-card-header" id="head">
+                        </div>
+                        <!-- Modal -->
+                        <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">员工信息编辑</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="layui-form" action="">
+                                            <input name="empId" id="empId" type="hidden">
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">名称</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="empName" required   placeholder="员工名称" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">登陆名称</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="loginName" required   placeholder="登录名称" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">密码</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="empPass" required   placeholder="登录密码" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+<!--                                                <div class="form-check">-->
+                                                    <label class="layui-form-label">性别</label>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" style="display:inline;" type="radio" name="sex" id="man" value="男">
+                                                        <label class="form-check-label" for="man">男</label>
+                                                    </div>
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" style="display:inline;" type="radio" name="sex" id="woman" value="女">
+                                                        <label class="form-check-label" for="woman">女</label>
+                                                    </div>
+<!--                                                </div>-->
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">地址</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="address" required   placeholder="地址" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item" id="checkBox">
+
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">邮箱</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="email" required   placeholder="邮箱" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">号码</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="number" required   placeholder="电话号码" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item" id="dept">
+
+                                            </div>
+
+                                            <!--                                                <div class="layui-form-item">-->
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                                                <button type="button" class="btn btn-primary" data-dismiss="modal" lay-submit lay-filter="formDemo">提交</button>
+                                                <!--                                                    </div>-->
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-card-body ">
+                            <table id="table" class="layui-hide"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </body>
+
+    <script type="text/html" id="btn">
+        <button type="button" onclick="edit(this)" class="btn btn-primary" data-toggle="modal" data-target="#staticBackdrop">
+            编辑
+        </button>
+    </script>
+
+
+    <script src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="js/myJs.js"></script>
+
+    <script>
+
+        function like() {
+            let url = '/emp/emp';
+
+            let deptId = oneValues();
+
+            url += "?likeName=" + $("input[name=likeName]").val();
+
+            if(deptId !== undefined && deptId.length > 0) {
+                url = url+"&deptId="+deptId;
+            }
+
+            table(url);
+        }
+
+        layui.use('form', function(){
+            var form = layui.form;
+
+            //监听提交
+            form.on('submit(formDemo)', function(data){
+                let inputs = $(".layui-input");
+
+                for (let i = 0; i < inputs.length-1; i++) {
+
+                    if($(inputs[i]).val() === "" || $(inputs[i]).val().length === 0) {
+                        let temp = $(inputs[i]).attr("placeholder");
+                        if(i === 0) {
+                            data.field.empName = temp;
+                        } else if(i === 1) {
+                            data.field.loginName = temp;
+                        } else if(i === 2) {
+                            data.field.empPass = temp;
+                        } else if(i === 3) {
+                            data.field.address = temp;
+                        } else if(i === 4) {
+                            data.field.email = temp;
+                        } else if(i === 5) {
+                            data.field.number = temp;
+                        }
+                    }
+                }
+
+                // 复选框所有值
+                var arr_box = [];
+
+                // 将复选框的值传递
+                $('input[type=checkbox]:checked').each(function() {
+                    arr_box.push($(this).val());
+                });
+                data.field.roleId = arr_box;
+
+                change(data.field, "/emp/emp");
+
+                init();
+                return false;
+            });
+
+        });
+
+        /**
+         *  执行更新操作
+         * @param empId 员工ID
+         * @param isDelete  是否删除
+         */
+        function update(empId, isDelete) {
+
+            change({empId:empId, empDelete:isDelete}, "/emp/emp");
+
+        }
+
+        function to() {
+            window.location.href = '/deptManage.html';
+        }
+
+
+        function table(url) {
+            layui.use('table', function(){
+                var table = layui.table;
+
+                table.render({
+                    elem: '#table'
+                    ,url:url
+                    ,type:'get'
+                    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                    ,cols: [[
+                        {field:'empId', width:80, title: 'ID', sort: true}
+                        ,{field:'empName', width:90, title: '员工名称'} //width 支持：数字、百分比和不填写。你还可以通过 minWidth 参数局部定义当前单元格的最小宽度，layui 2.2.1 新增
+                        ,{field:'loginName', title: '登录名称'}
+                        ,{field:'empPass', title: '登陆密码'}
+                        ,{field:'sex', width:80, title: '性别', sort: true}
+                        ,{field:'address', width:80, title: '地址'}
+                        ,{field:'rolesName', title: '角色', align: 'center'} //单元格内容水平居中
+                        ,{field:'email', title: '邮箱', sort: true, align: 'right'} //单元格内容水平居右
+                        ,{field:'number', title: '电话号码', sort: true, align: 'center'}
+                        ,{field:'status', width:100, title: '是否请假', align: 'center'}
+                        ,{field: 'empDelete', title: '状态', align: 'center', templet: function (emp) {
+                                var html = "";
+                                if (emp.empDelete == "1") {
+                                    html += '<button type="button" class="layui-btn layui-btn-sm" onclick="update('+emp.empId+',0)">删除</button>';
+                                } else {
+                                    html += '<button type="button" class="layui-btn layui-btn-sm" onclick="update('+emp.empId+',1)">恢复</button>';
+                                }
+                                return html;
+                            }
+                        }
+                        ,{field: 'deptName', title: '部门'}
+                        // 通过toolbar导入样式
+                        ,{field: 'button', title: '操作', toolbar: "#btn", align: "center"}
+                    ]]
+                    ,page: true
+                });
+            });
+        }
+
+
+        /**
+         *  初始化
+         */
+        function init() {
+
+            let url = '/emp/emp';
+
+            let deptId = oneValues();
+
+            let head = "";
+
+            if(deptId !== undefined && deptId.length > 0) {
+                url = url+"?deptId="+deptId;
+                head += '<button class="layui-btn layui-btn-danger" onclick="to()"><i class="layui-icon"></i>返回</button>';
+            }
+
+            head += '<button class="layui-btn" onclick="xadmin.open(\'添加用户\',\'./emp-add.html\',600,600)"><i class="layui-icon"></i>添加</button>';
+
+            $("#head").html(head);
+
+            table(url);
+        }
+
+        //接收一个值
+        function oneValues(){
+            var result;
+            var url=window.location.search; //获取url中"?"符后的字串
+            if(url.indexOf("?")!=-1){
+                result = url.substr(url.indexOf("=")+1);
+            }
+            return result;
+        }
+
+        /**
+         *  当点击编辑时
+         * @param obj   当前那个编辑对象
+         */
+        function edit(obj) {
+            let msg = $(obj).parents("tr").find(".layui-table-cell");
+            let inputs = $(".layui-input");
+
+            // 设置ID
+            $("#empId").val($(msg[0]).text());
+
+            // 遍历所有的输入框
+            for (let i = 0; i < inputs.length-1; i++) {
+                $(inputs[i]).val("");
+                if(i < 3) {
+                    $(inputs[i]).attr("placeholder", $(msg[i+1]).text());
+                } else if(i < 4) {
+                    $(inputs[i]).attr("placeholder", $(msg[i+2]).text());
+                } else {
+                    $(inputs[i]).attr("placeholder", $(msg[i+3]).text());
+                }
+            }
+
+            // 异步获取所有角色
+            $.ajax({
+                //请求方式
+                type : "get",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : "/role/editEmp",
+                //数据，json字符串
+                // data : data,
+                //请求成功
+                success : function(result) {
+                    let role = result.data;
+                    const roleName = $(msg[6]).text();
+                    let html = ' <label class="layui-form-label" style="display: block">角色</label>';
+                    for (let i = 0; i < role.length; i++) {
+
+                        if(roleName.indexOf(role[i].roleName) > -1) {
+
+                            html += "<div class='form-check form-check-inline'>" +
+                                "  <input class='form-check-input' type='checkbox' style='display: inline' id='"+role[i].roleId+"' value='"+role[i].roleId+"' checked>" +
+                                "  <label class='form-check-label' for='"+role[i].roleId+"'>"+role[i].roleName+"</label>" +
+                                "</div>";
+                        } else {
+                            html += "<div class='form-check form-check-inline'>" +
+                                "  <input class='form-check-input' type='checkbox' style='display: inline' id='"+role[i].roleId+"' value='"+role[i].roleId+"'>" +
+                                "  <label class='form-check-label' '"+role[i].roleId+"'>"+role[i].roleName+"</label>" +
+                                "</div>";
+                        }
+                    }
+                    $("#checkBox").html(html);
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+
+            // 异步获取所有部门
+            $.ajax({
+                //请求方式
+                type : "get",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : "/dept/editDept",
+                //数据，json字符串
+                // data : data,
+                //请求成功
+                success : function(result) {
+                    let dept = result.data;
+                    const deptName = $(msg[11]).text();
+                    let html = ' <label class="layui-form-label" style="display: block">部门</label>';
+                    for (let i = 0; i < dept.length; i++) {
+
+                        if(deptName.indexOf(dept[i].deptName) > -1) {
+                            html += '<div class="form-check form-check-inline">' +
+                                '  <input class="form-check-input" style="display:inline;" name="deptId" type="radio" id='+dept[i].deptName+' value='+dept[i].deptId+' checked>' +
+                                '  <label class=\'form-check-label\' for='+dept[i].deptName+'>'+dept[i].deptName+'</label>' +
+                                '  </div>';
+                        } else {
+                            html += '<div class="form-check form-check-inline">' +
+                                '  <input class="form-check-input" style="display:inline;" name="deptId" type="radio" id='+dept[i].deptName+' value='+dept[i].deptId+'>' +
+                                '  <label class="form-check-label" for='+dept[i].deptName+'>'+dept[i].deptName+'</label>' +
+                                '  </div>';
+                        }
+                    }
+                    $("#dept").html(html);
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+
+            let sex = $("input[name=sex]");
+
+            if($(msg[4]).text() === "男") {
+                $(sex[0]).attr("checked", "checked");
+            } else{
+                $(sex[1]).attr("checked", "checked");
+            }
+        }
+
+        $(function (){
+
+            init();
+
+        });
+
+
+    </script>
+</html>

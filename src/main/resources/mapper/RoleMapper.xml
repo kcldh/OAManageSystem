@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.RoleMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+    <resultMap id="getRoleByEmpId" type="com.cjj.bean.Role">
+        <id property="roleId" column="role_Id" javaType="integer"/>
+        <result property="roleName" column="role_name" javaType="string"/>
+        <result property="roleDelete" column="role_delete" javaType="integer"/>
+        <collection property="resources" ofType="com.cjj.bean.Resource" javaType="arraylist"
+            select="com.cjj.mapper.ResourceMapper.getResourcesByRoleId" column="role_Id">
+
+        </collection>
+    </resultMap>
+
+
+
+    <select id="getRoleByEmpId" resultType="com.cjj.bean.Role">
+        select role_Id, role_Name, role_Delete from role
+        where role_Delete = 1 and role_Id in (select role_Id from emp_role where emp_Id = #{empId})
+    </select>
+
+    <select id="selectAll" resultMap="getRoleByEmpId">
+        select role_Id, role_Name, role_Delete from role
+        where role_Name not in( '管理员')
+    </select>
+
+    <insert id="saveRoleToRes" >
+        insert into role_res(role_Id, res_Id)
+        <foreach collection="resId" item="res" open="values" separator=",">
+            (#{roleId}, #{res})
+        </foreach>
+    </insert>
+
+    <delete id="deleteResForRole" parameterType="integer">
+        delete from role_res where role_Id = #{roleId}
+    </delete>
+
+    <select id="getRoles" resultType="com.cjj.bean.Role">
+        select role_Id, role_Name, role_Delete from role
+        where role_Delete = 1 and role_Name != '管理员'
+    </select>
+
+    <select id="getRoleLikeName" resultMap="getRoleByEmpId">
+        select role_Id, role_Name, role_Delete
+        from role
+        where role_Name like '%${name}%'
+    </select>
+</mapper>

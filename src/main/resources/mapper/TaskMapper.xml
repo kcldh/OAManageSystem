@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.TaskMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+    <resultMap id="getTaskSuccess" type="com.cjj.bean.Task">
+        <id property="taskId" column="task_Id"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="taskDescribe" column="task_Describe"/>
+        <result property="taskName" column="task_Name"/>
+        <result property="taskDetails" column="task_Details"/>
+        <result property="taskSuccess" column="task_Success"/>
+        <association property="publisherName" javaType="java.lang.String"
+                     column="publisher_id" select="getPublisherName">
+        </association>
+    </resultMap>
+
+    <resultMap id="getTaskSuccess1" type="com.cjj.bean.Task">
+        <id property="taskId" column="task_Id"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="taskDescribe" column="task_Describe"/>
+        <result property="taskName" column="task_Name"/>
+        <result property="taskDetails" column="task_Details"/>
+        <association property="publisherName" javaType="java.lang.String"
+                     column="publisher_id" select="getPublisherName">
+        </association>
+    </resultMap>
+
+    <select id="selectAll" resultMap="getTaskSuccess" >
+        SELECT task_Id, task_Details, task_Name, task_Describe, publisher_ID, emp_Name
+        FROM task, emp WHERE emp.emp_Id = task.publisher_ID AND emp_delete = 1
+        order by task_Id
+    </select>
+
+    <select id="getPublisherName" resultType="java.lang.String">
+        select emp_Name from emp where emp_Id = #{publisherId}
+    </select>
+
+    <select id="getNotSuccessTaskByEmpId" resultMap="getTaskSuccess" >
+        SELECT  task.task_Id, task_Details, task_Name, task_Describe, publisher_ID, task_Success
+        FROM emp_task, task WHERE emp_Id = #{empId} AND task.task_id = emp_task.task_id and task_Success != 1
+    </select>
+
+    <select id="getSuccessTaskByEmpId" resultMap="getTaskSuccess" >
+        SELECT  task.task_Id, task_Details, task_Name, task_Describe, publisher_ID, task_Success
+        FROM emp_task, task WHERE emp_Id = #{empId} AND task.task_id = emp_task.task_id and task_Success = 1
+    </select>
+
+    <update id="updateTaskStatus">
+        update emp_task set task_Success = ${taskSuccess}
+        where task_id = ${taskId} and emp_id = ${empId}
+    </update>
+
+    <select id="getTaskByPublisherId" resultMap="getTaskSuccess1">
+        SELECT  task_Id, task_Details, task_Name, task_Describe, publisher_ID
+        FROM task, emp
+        WHERE publisher_ID = emp.emp_id
+          AND emp_Delete = 1 AND publisher_ID = #{publisherId}
+    </select>
+
+    <insert id="addEmpToTask">
+        insert into emp_task(task_id, emp_id)
+            <foreach collection="empIds" open="values" separator="," item="empId">
+                (${taskId}, #{empId})
+            </foreach>
+    </insert>
+
+    <select id="getAllTaskByEmpId" resultMap="getTaskSuccess">
+        SELECT  task.task_Id, task_Details, task_Name, task_Describe, publisher_ID, task_Success
+        FROM emp_task, task WHERE emp_Id = #{empId} AND task.task_id = emp_task.task_id
+    </select>
+</mapper>

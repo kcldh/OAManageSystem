@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>请假</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <script src="js/axios.min.js"></script>
+        <script src="lib/layui/layui.all.js"></script>
+        <link rel="stylesheet" href="lib/layui/css/layui.css">
+
+        <script src="./js/xadmin.js"></script>
+        <link rel="stylesheet" href="css/bootstrap.css">
+
+        <!--[if lt IE 9]>
+          <script src="js/html5.min.js"></script>
+          <script src="js/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:20px; margin-bottom: 20px; float:right" onclick="location.reload()" title="刷新">
+                    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+                <div class="layui-col-md12">
+                    <div class="layui-card" id="main">
+                        <div class="layui-card-header">
+                            <div class="layui-card-header" >
+                                <select id="select"  onchange="isSuccess()" style="width: 80px; height: 36px; top: 10px" class="btn-secondary dropdown-toggle" onchange="isSuccess()">
+                                    <option value="1" selected>所有</option>
+                                    <option value="2">已成功</option>
+                                    <option value="3" >未成功</option>
+                                    <option value="4" >待审核</option>
+                                </select>
+                                <button class="layui-btn" style="float: right" onclick="xadmin.open('请假申请','./leave-add.html',600,600)"><i class="layui-icon"></i>添加</button>
+                            </div>
+                            </div>
+                        <div class="layui-card-body ">
+                            <table id="table" class="layui-hide"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </body>
+
+
+    <script src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+
+
+    <script>
+
+        let success = 1;
+
+        /**
+         *  查询的参数
+         */
+        function isSuccess() {
+            success = $("#select").val();
+            init();
+        }
+
+        function init(){
+            $(function () {
+                $.ajax({
+                    //请求方式
+                    type : "get",
+                    //请求的媒体类型
+                    // contentType: "application/json;charset=UTF-8",
+                    //请求地址
+                    url : 'role/manage',
+                    //数据，json字符串
+                    //请求成功
+                    success : function(result) {
+
+                        if(result === false || result === "false") {
+                            $(".layui-card-header").css("display", "inline");
+
+                            layui.use('table', function(){
+                                var table = layui.table;
+
+                                table.render({
+                                    elem: '#table'
+                                    ,url:'/leaveForm/leaveForm?success='+success
+                                    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                                    ,cols: [[
+                                        {field:'leaveId', title: 'ID', sort: true}
+                                        ,{field: 'leaveDate', title: '请假日期' , sort: true
+                                            ,templet:"<div>{{layui.util.toDateString(d.leaveDate, 'yyyy-MM-dd')}}</div>"}
+                                        ,{field:'leaveDetails', title: '请假详情'} //width 支持：数字、百分比和不填写。你还可以通过 minWidth 参数局部定义当前单元格的最小宽度，layui 2.2.1 新增
+                                        ,{field:'leaveDays', title: '请假时间（天）', sort: true}
+                                        ,{field:'leaveSuccess1', title: '请假是否成功', align: 'center'} //单元格内容水平居中
+                                    ]]
+                                    ,page: true
+                                });
+                            });
+                        } else {
+                            alert("当前为管理员或者经理， 请假无需审批");
+                            window.location.href = 'leaveManage.html';
+                        }
+
+                    },
+                    //请求失败，包含具体的错误信息
+                    error : function(e){
+                        console.log(e.status);
+                        console.log(e.responseText);
+                    }
+                });
+
+
+            });
+
+        }
+
+        $(function (){
+            init();
+        })
+    </script>
+</html>

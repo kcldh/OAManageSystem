@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.ReimburseMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+    <resultMap id="getEmp" type="com.cjj.bean.Reimburse">
+        <id property="reimburseId" column="reimburse_id"/>
+        <result property="reimburseSuccess" column="reimburse_Success"/>
+        <result property="reimburseMoney" column="reimburse_Money"/>
+        <result property="reimburseDetails" column="reimburse_Details"/>
+        <result property="reimburseDate" column="reimburse_Date"/>
+        <result property="empId" column="emp_Id"/>
+        <association property="emp" javaType="com.cjj.bean.Emp" >
+            <result property="empName" column="emp_name" javaType="string"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="getReportForm" type="com.cjj.bean.Reimburse" extends="getEmp">
+        <result property="reimburseMoneys" column="sum(reimburse_Money)"/>
+    </resultMap>
+
+
+
+    <select id="getReimburseBySuperiorId" resultMap="getEmp">
+        SELECT reimburse_Id, reimburse_Date, reimburse.emp_Id, emp_Name, reimburse_Money, reimburse_Success, reimburse_Details
+        FROM reimburse, emp
+        WHERE reimburse.emp_id IN (SELECT emp_id FROM emp WHERE superior_Id = #{superiorId})
+          and emp.emp_Id = reimburse.emp_Id
+    </select>
+
+    <select id="getReimburseBySuperiorIdAndStatus" resultMap="getEmp">
+        SELECT reimburse_Id, reimburse_Date, emp_Name, reimburse.emp_Id, reimburse_Money, reimburse_Success, reimburse_Details
+        FROM reimburse, emp
+        WHERE reimburse.emp_id IN (SELECT emp_id
+                         FROM emp WHERE superior_Id = #{superiorId})
+          and reimburse_Success = #{success}
+    </select>
+
+    <select id="selectAll" resultMap="getEmp">
+        SELECT reimburse_Id, reimburse_Date, reimburse.emp_Id, reimburse_Money, reimburse_Success, reimburse_Details, emp_Name
+        FROM reimburse, emp where emp.emp_Id = reimburse.emp_Id
+    </select>
+
+    <select id="selectAllByStatus" resultMap="getEmp">
+        SELECT reimburse_Id, reimburse_Date, emp.emp_Id, reimburse_Money, reimburse_Success, reimburse_Details, emp_Name
+        FROM reimburse, emp
+        WHERE reimburse_Success = #{success} and emp.emp_Id = reimburse.emp_Id
+    </select>
+
+    <select id="reportStatistics" resultMap="getReportForm">
+        SELECT reimburse_Id, reimburse_Date, emp.emp_Id, reimburse_Money, reimburse_Success, reimburse_Details, emp_Name, sum(reimburse_Money)
+        FROM reimburse, emp
+        WHERE emp.emp_Id = reimburse.emp_Id and reimburse_Success = 1 group by reimburse.emp_Id
+    </select>
+</mapper>

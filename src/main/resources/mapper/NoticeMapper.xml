@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.NoticeMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+    <sql id="columns">
+        notice.notice_Id, notice_name, notice_Describe, notice_Details, publisher_ID, mark_read
+    </sql>
+
+    <resultMap id="getPublishedName" type="com.cjj.bean.Notice">
+        <id property="noticeId" column="notice_Id"/>
+        <result property="noticeDescribe" column="notice_Describe"/>
+        <result property="noticeDetails" column="notice_Details"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="markRead" column="mark_read"/>
+        <result property="noticeName" column="notice_name"/>
+        <association property="publisherName" javaType="java.lang.String"
+            select="com.cjj.mapper.TaskMapper.getPublisherName" column="publisher_id">
+
+        </association>
+    </resultMap>
+
+    <resultMap id="getPublishedById" type="com.cjj.bean.Notice">
+        <id property="noticeId" column="notice_Id"/>
+        <result property="noticeDescribe" column="notice_Describe"/>
+        <result property="noticeDetails" column="notice_Details"/>
+        <result property="publisherId" column="publisher_id"/>
+        <result property="noticeName" column="notice_name"/>
+        <association property="publisherName" javaType="java.lang.String"
+                     select="com.cjj.mapper.TaskMapper.getPublisherName" column="publisher_id">
+
+        </association>
+    </resultMap>
+
+
+    <select id="getAllNoticeByEmp" resultMap="getPublishedName">
+        select
+        <include refid="columns">
+        </include>
+        from notice, emp_notice
+        where emp_Id = #{empId} and notice.notice_Id = emp_notice.notice_Id
+    </select>
+
+    <select id="getNotReadNoticeByEmp" resultMap="getPublishedName">
+        select
+        <include refid="columns">
+        </include>
+        from notice, emp_notice
+        where emp_Id = #{empId} and notice.notice_Id = emp_notice.notice_Id
+            and mark_read = 2
+    </select>
+
+    <select id="getReadNoticeByEmp" resultMap="getPublishedName">
+        select
+        <include refid="columns">
+        </include>
+        from notice, emp_notice
+        where emp_Id = #{empId} and notice.notice_Id = emp_notice.notice_Id
+        and mark_read = 1
+    </select>
+
+    <select id="selectAll" resultMap="getPublishedById">
+        select notice_Id, notice_name, notice_Describe, notice_Details, publisher_ID
+        from notice
+    </select>
+
+    <update id="updateNoticeStatus">
+        update emp_notice set mark_read = #{markRead}
+        where notice_Id = #{noticeId} and emp_Id = #{empId}
+    </update>
+
+    <select id="selectNoticeByPublisherId" resultMap="getPublishedById">
+        select notice_Id, notice_name, notice_Describe, notice_Details, publisher_ID
+        from notice where publisher_ID = #{publisherId}
+    </select>
+
+    <insert id="addEmpToNotice">
+        insert into emp_notice(notice_Id, emp_id)
+        <foreach collection="empIds" open="values" separator="," item="empId">
+            (${noticeId}, #{empId})
+        </foreach>
+    </insert>
+</mapper>

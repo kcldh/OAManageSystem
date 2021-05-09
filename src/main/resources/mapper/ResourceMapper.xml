@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.ResourceMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+
+    <resultMap id="resourcePage" type="com.cjj.bean.Resource" extends="selectAll">
+        <collection column="res_id" select="getResourceByParentId" property="resourcePage" ofType="com.cjj.bean.Resource">
+            <id property="resId" column="res_id" javaType="integer"/>
+            <result property="parentId" column="parent_id" />
+            <result property="resDelete" column="res_Delete" javaType="integer"/>
+            <result property="resDetails" column="res_Details" javaType="string"/>
+            <result property="resIco" column="res_ico"/>
+            <result property="resUrl" column="res_url" javaType="string"/>
+            <result property="resName" javaType="string" column="res_Name"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="selectAll" type="com.cjj.bean.Resource" >
+        <id property="resId" column="res_id" javaType="integer"/>
+        <result property="parentId" column="parent_id" />
+        <result property="resIco" column="res_ico"/>
+        <result property="resDelete" column="res_Delete" javaType="integer"/>
+        <result property="resDetails" column="res_Details" javaType="string"/>
+        <result property="resUrl" column="res_url" javaType="string"/>
+        <result property="resName" javaType="string" column="res_Name"/>
+    </resultMap>
+
+
+    <sql id="columns">
+        select res_Id, res_ico, res_Name, res_Url, parent_id, res_Delete, res_Details
+        from resource
+    </sql>
+
+    <select id="getResourceByParentId" resultType="com.cjj.bean.Resource">
+        <include refid="columns">
+        </include>
+        where res_Delete = 1 and parent_id = #{resId}
+    </select>
+
+    <select id="getResources" resultMap="resourcePage">
+        <include refid="columns">
+        </include>
+        where res_delete = 1 and (parent_id = 0 or parent_id is null )
+    </select>
+
+    <select id="getResourcesByRoleId" resultMap="resourcePage">
+        <include refid="columns">
+        </include>
+        where res_Delete = 1 and res_Id in (select res_Id from role_res where role_Id = #{roleId});
+    </select>
+
+
+    <select id="selectAll" resultMap="selectAll">
+        <include refid="columns">
+        </include>
+    </select>
+
+    <select id="getResourceLikeName" resultMap="resourcePage">
+        <include refid="columns">
+        </include>
+        where res_name like '%${name}%'
+    </select>
+</mapper>

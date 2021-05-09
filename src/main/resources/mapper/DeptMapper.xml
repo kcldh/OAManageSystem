@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.DeptMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+    <resultMap id="dept" type="com.cjj.bean.Dept">
+        <id property="deptId" column="dept_Id"/>
+        <result property="deptDelete" column="dept_Delete"/>
+        <result property="deptDetails" column="dept_Details"/>
+        <result property="deptName" column="dept_Name"/>
+    </resultMap>
+
+
+    <resultMap id="EmpCountByDept" type="com.cjj.bean.Dept" extends="dept">
+        <association property="empCount" column="dept_Id" javaType="integer"
+                     select="com.cjj.mapper.EmpMapper.selectEmpCountByDept"/>
+    </resultMap>
+
+    <select id="getDeptById" resultMap="dept">
+        select dept_Id, dept_Name, dept_Details, dept_Delete from dept
+        where dept_Id = #{deptId} and dept_Delete != 0
+    </select>
+
+    <select id="selectAll" resultMap="EmpCountByDept">
+        select dept_Id, dept_Name, dept_Details, dept_Delete from dept
+    </select>
+
+</mapper>

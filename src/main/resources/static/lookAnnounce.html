@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" >
+    <head>
+        <meta charset="UTF-8">
+        <title>查看公告</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+
+        <script src="lib/layui/layui.js"></script>
+        <link rel="stylesheet" href="lib/layui/css/layui.css">
+        <script src="./js/xadmin.js"></script>
+        <script src="js/jquery.min.js"></script>
+        <link rel="stylesheet" href="css/bootstrap.css">
+        <script src="js/bootstrap.js"></script>
+
+        <!--[if lt IE 9]>
+          <script src="js/html5.min.js"></script>
+          <script src="js/respond.min.js"></script>
+        <![endif]-->
+
+        <style>
+            .layui-table-cell{
+                height:40px;
+                line-height: 40px;
+            }.layui-form-label{
+                width: 100px !important;
+            }
+            textarea{
+                height: 80px !important;
+            }
+            @media(min-width:992px){
+                .modal-lg{
+                    width:992px;
+                }
+            }
+            .modal.fade.in{
+                top:90px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15" style="margin-top: 20px">
+                <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+                <div class="layui-col-md12">
+                    <div class="layui-card" id="main">
+                        <div class="layui-card-header" >
+                            <select id="select" style="width: 80px; height: 40px" class="btn-secondary dropdown-toggle" onchange="isSuccess()">
+                                <option value="1" selected>所有</option>
+                                <option value="2">已读</option>
+                                <option value="3" >未读</option>
+                            </select>
+                        </div>
+                        <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">公告详情</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row no-gutters bg-light position-relative">
+                                            <div class="col-md-6 mb-md-0 p-md-4">
+                                                <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+                                                    <div class="carousel-inner">
+                                                        <div class="carousel-item active">
+                                                            <img src="/images/1.jpg" class="d-block w-100" alt="...">
+                                                        </div>
+                                                        <div class="carousel-item">
+                                                            <img src="/images/2.jpg" class="d-block w-100" alt="...">
+                                                        </div>
+                                                        <div class="carousel-item">
+                                                            <img src="/images/img.png" class="d-block w-100" alt="...">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 position-static p-4 pl-md-0">
+                                                <h5 class="mt-0" id="noticeName"></h5>
+                                                <br/>
+                                                <p id="textarea">  </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="layui-card-body ">
+                            <table id="table" class="layui-hide"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </body>
+
+
+    <script src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="/js/myJs.js"></script>
+
+    <script>
+
+
+        var success = 1;
+
+
+        /**
+         *  查询的参数
+         */
+        function isSuccess() {
+            success = $("#select").val();
+            init();
+        }
+
+
+        /**
+         * 更改为已读
+         */
+        function read(noticeId) {
+
+            change({noticeId:noticeId, markRead: 1}, 'notice/notice');
+        }
+
+
+        /**
+         *  初始化
+         */
+        function init() {
+            $.ajax({
+                //请求方式
+                type : "get",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : 'role/isManage',
+                //数据，json字符串
+                //请求成功
+                success : function(result) {
+
+                    // 不是管理层
+                    if(result === false || result === "false") {
+
+                        $("#select").css("display", "inline");
+                        layui.use('table', function(){
+                            var table = layui.table;
+
+                            table.render({
+                                elem: '#table'
+                                ,url:'/notice/notice?success='+success
+                                ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                                ,cols: [[
+                                    {field: 'noticeId', title: 'ID' , sort: true}
+                                    ,{field:'noticeName', title: '任务名称'}
+                                    ,{field:'noticeDescribe', title: '任务描述'}
+                                    ,{field:'publisherName', title: '发布者名称'}
+                                    ,{field:'markRead', title: '是否已读', align: 'center',
+                                        templet: function (notice) {
+                                            let html = '<div class="form-group col-md-12" >';
+
+                                            if(notice.markRead === 1) {
+                                                html += '<a href="javascript:void(0);" data-toggle="modal" data-target="#staticBackdrop" style="color:#0C0C0C">已读</a>';
+                                            } else if(notice.markRead === 2) {
+                                                html += '<a href="javascript:void(0);" onclick="read('+notice.noticeId+')" data-toggle="modal" data-target="#staticBackdrop" style="color:#de0b1f;">未读</a>';
+                                            }
+                                            html+="</div>";
+                                            return html;
+                                        }} //单元格内容水平居中
+                                    ,{field: "", title: "查看公告", templet: function (notice) {
+
+                                        let html = "";
+                                            if(notice.markRead === 1) {
+                                                html += '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#staticBackdrop"> 点击查看 </button>';
+                                            } else if(notice.markRead === 2) {
+                                                html += '<button type="button" onclick="read('+notice.noticeId+')" class="btn btn-primary" data-toggle="modal" data-target="#staticBackdrop"> 点击查看 </button>';
+                                            }
+
+                                            $("#noticeName").text(notice.noticeName);
+                                            $("#textarea").text(notice.noticeDetails);
+
+                                            return html;
+                                        }}
+                                ]]
+                                ,page: true
+                            });
+                        });
+                    } else {
+                        alert("当前为管理员， 请自行查看公告界面");
+                        window.location.href = 'announce.html';
+                    }
+
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+        }
+
+        $(function () {
+
+            init();
+
+        });
+    </script>
+</html>

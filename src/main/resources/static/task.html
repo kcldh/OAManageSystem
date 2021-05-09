@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" >
+    <head>
+        <meta charset="UTF-8">
+        <title>任务</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+
+        <script src="lib/layui/layui.js"></script>
+        <link rel="stylesheet" href="lib/layui/css/layui.css">
+        <script src="./js/xadmin.js"></script>
+        <script src="js/jquery.min.js"></script>
+        <link rel="stylesheet" href="css/bootstrap.css">
+        <script src="js/bootstrap.js"></script>
+
+        <!--[if lt IE 9]>
+          <script src="js/html5.min.js"></script>
+          <script src="js/respond.min.js"></script>
+        <![endif]-->
+
+        <style>
+            .layui-table-cell{
+                height:40px;
+                line-height: 40px;
+            }.layui-form-label{
+                width: 100px !important;
+            }
+            textarea{
+                height: 80px !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15" style="margin-top: 20px">
+                <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+                <div class="layui-col-md12">
+                    <div class="layui-card" id="main">
+
+                        <div class="layui-card-header" >
+                            <select id="select" style="display: none" onchange="isSuccess()">
+                                <option value="1" selected>所有</option>
+                                <option value="2">已完成</option>
+                                <option value="3" >未完成</option>
+                            </select>
+                            <button style="display: none" id="add" class="layui-btn" onclick="xadmin.open('添加任务','task-add.html',600,600)"><i class="layui-icon"></i>添加</button>
+                        </div>
+                        <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">任务详情</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">任务详情</span>
+                                            </div>
+                                            <textarea id="textarea" class="form-control" disabled aria-label="With textarea"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="staticBackdrop1" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel1">任务编辑</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form class="layui-form" action="">
+                                            <input name="taskId" id="taskId" type="hidden">
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">任务名称</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="taskName" required   placeholder="任务名称" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">任务描述</label>
+                                                <div class="layui-input-inline">
+                                                    <input type="text" name="taskDescribe" required  placeholder="任务描述" autocomplete="off" class="layui-input">
+                                                </div>
+                                            </div>
+                                            <div class="layui-form-item">
+                                                <label class="layui-form-label">任务详情</label>
+                                                <div class="layui-input-block">
+                                                    <textarea type="text" name="taskDetails" required placeholder="资源描述" autocomplete="off" class="layui-input"></textarea>
+                                                </div>
+                                            </div>
+                                            <!--                                                <div class="layui-form-item">-->
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                                                <button type="button" class="btn btn-primary" data-dismiss="modal" lay-submit lay-filter="formDemo">提交</button>
+                                                <!--                                                    </div>-->
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-card-body ">
+                            <table id="table" class="layui-hide"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </body>
+
+
+    <script src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="./js/myJs.js"></script>
+
+    <script>
+
+        var success = 1;
+
+        function isSuccess() {
+            success = $("#select").val();
+            init();
+        }
+
+        layui.use('form', function(){
+            var form = layui.form;
+
+            //监听提交
+            form.on('submit(formDemo)', function(data){
+                let inputs = $(".layui-input");
+                for(let i = 0; i < inputs.length-1; i++) {
+                    if($(inputs[i]).val() === "" || $(inputs[i]).val().length === 0) {
+                        if(i === 0) {
+                            data.field.taskName = $(inputs[i]).attr("placeholder");
+                        } else if(i === 1) {
+                            data.field.taskDescribe = $(inputs[i]).attr("placeholder");
+                        } else {
+                            data.field.taskDetails = $(inputs[i]).attr("placeholder");
+                        }
+                    }
+                }
+
+                // console.log(data)
+                // console.log(JSON.stringify(data.field));
+                // layer.msg(JSON.stringify(data.field));
+                change(data.field, "/task/task");
+                // $('#staticBackdropLabel').modal("hide");
+                return false;
+            });
+
+        });
+
+        /**
+         *  根据任务ID删除任务
+         * @param taskId    任务ID
+         */
+        function delTask(taskId){
+            $.ajax({
+                //请求方式
+                type : "delete",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : "/task/task",
+                //数据，json字符串
+                data : {taskId: taskId},
+                //请求成功
+                success : function(result) {
+                    if(result) {
+                        layer.alert("删除成功", {
+                                icon: 6
+                        })
+                    }
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+        }
+
+
+        /**
+         *  点击编辑时
+         * @param obj
+         */
+        function edit(obj){
+
+            let msg = $(obj).parents("tr").find(".layui-table-cell");
+            let inputs = $(".layui-input");
+            $("#taskId").val($(msg[0]).text());
+
+            for (let i = 0; i < 2; i++) {
+                $(inputs[i]).val("");
+            }
+
+            for (let i = 0; i < 2; i++) {
+                $(inputs[i]).attr("placeholder", $(msg[i+1]).text());
+            }
+        }
+
+        function changeStatus(taskId) {
+            let data = {taskId:taskId,taskSuccess: $("#inputState").val()};
+            let url = "/task/task";
+            change(data, url);
+        }
+
+        function init() {
+            $.ajax({
+                //请求方式
+                type : "get",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : 'role/manage',
+                //数据，json字符串
+                //请求成功
+                success : function(result) {
+
+                    // 不是管理层
+                    if(result === false || result === "false") {
+
+                        $("#select").css("display", "inline");
+                        layui.use('table', function(){
+                            var table = layui.table;
+
+                            table.render({
+                                elem: '#table'
+                                ,url:'/task/task?success='+success
+                                ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                                ,cols: [[
+                                    {field: 'taskId', title: 'ID' , sort: true}
+                                    ,{field:'taskName', title: '任务名称'}
+                                    ,{field:'taskDescribe', title: '任务描述'}
+                                    ,{field:'publisherName', title: '发布者名称'}
+                                    ,{field:'taskSuccess', title: '任务是否完成', align: 'center',
+                                        templet: function (task) {
+                                            let html = '<div class="form-group col-md-12">';
+
+                                            if(task.taskSuccess === 1) {
+                                                html += '<select disabled id="inputState" style="display: inline; margin-left: 20px" class="form-control">'+
+                                                    '        <option value="1" selected>已完成</option>' +
+                                                    '        <option value="2">未完成</option>'+
+                                                    '        <option value="3">未办</option>';
+                                            } else if(task.taskSuccess === 2) {
+                                                html += '<select id="inputState" onchange="changeStatus('+task.taskId+')" style="display: inline; margin-left: 20px" class="form-control">'+
+                                                    '        <option value="1" >已完成</option>' +
+                                                    '        <option value="2" selected>未完成</option>'+
+                                                    '        <option value="3">未办</option>';
+                                            } else if(task.taskSuccess === 3) {
+                                                html +=  '      <select onchange="changeStatus('+task.taskId+')" id="inputState" style="display: inline; margin-left: 20px" class="form-control">'+
+                                                    '        <option value="1" >已完成</option>' +
+                                                    '        <option value="2">未完成</option>'+
+                                                    '        <option value="3" selected>未办</option>';
+                                            }
+                                            html += '      </select>' +
+                                                '    </div>';
+                                            ;
+                                            return html;
+                                        }} //单元格内容水平居中
+                                    ,{field: "", title: "查看详情", templet: function (task) {
+                                            let html =
+                                                '<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#staticBackdrop"> 查看详情 </button>';
+                                            $("#textarea").val(task.taskDetails);
+
+                                            return html;
+                                        }}
+                                ]]
+                                ,page: true
+                            });
+                        });
+                    } else {
+                        $("#add").css("display", "inline");
+                        layui.use('table', function(){
+                            var table = layui.table;
+
+                            table.render({
+                                elem: '#table'
+                                ,url:'/task/task'
+                                ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                                ,cols: [[
+                                    {field: 'taskId', title: 'ID' , sort: true}
+                                    ,{field:'taskName', title: '任务名称'}
+                                    ,{field:'taskDescribe', title: '任务描述'}
+                                    ,{field:'publisherName', title: '发布者名称'}
+                                    ,{field: "", title: "操作", templet: function (task) {
+                                            $($(".layui-input")[2]).val("");
+                                            $($(".layui-input")[2]).attr("placeholder",task.taskDetails);
+                                            let html = '<button type="button" class="btn btn-danger" onclick="delTask('+task.taskId+')" )> 删除 </button>'+
+                                                '<button type="button" class="btn btn-primary" data-toggle="modal" onclick="edit(this)" data-target="#staticBackdrop1"> 编辑 </button>';
+                                            return html;
+                                        }}
+                                ]]
+                                ,page: true
+                            });
+                        });
+                    }
+
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+        }
+
+        $(function () {
+
+            init();
+
+        });
+    </script>
+</html>

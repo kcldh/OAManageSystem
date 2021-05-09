@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjj.mapper.EmpMapper">
+
+    <!-- 开启二级缓存 -->
+<!--    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>-->
+
+    <resultMap id="selectPage" type="com.cjj.bean.Emp">
+        <id property="empId" column="emp_Id" javaType="integer"/>
+        <result property="deptId" column="dept_Id" javaType="integer"/>
+        <result property="address" column="address" javaType="string"/>
+        <result property="email" column="email" javaType="string"/>
+        <result property="empDelete" column="emp_Delete" javaType="integer"/>
+        <result property="empLeave" column="emp_Leave" javaType="integer"/>
+        <result property="empName" column="emp_name" javaType="string"/>
+        <result property="superiorId" column="superior_Id" javaType="integer"/>
+        <result property="sex" column="sex" javaType="string"/>
+        <result property="number" column="number" javaType="string"/>
+        <result property="loginName" column="login_Name" javaType="string"/>
+        <result property="empPass" column="emp_pass" javaType="string"/>
+        <association property="dept" javaType="com.cjj.bean.Dept"
+                select="com.cjj.mapper.DeptMapper.getDeptById" column="dept_Id">
+        </association>
+        <collection column="emp_Id" property="roles" javaType="arraylist"
+                    ofType="com.cjj.bean.Role" select="com.cjj.mapper.RoleMapper.getRoleByEmpId">
+        </collection>
+    </resultMap>
+
+    <select id="selectAll" resultMap="selectPage" >
+        select  emp_Id, emp_Name, login_Name, emp_Pass, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp
+        where emp_Id not in(
+                select emp_Id from emp_role where role_Id = (
+                        select role_Id from role where role_Name = '管理员'))
+    </select>
+
+
+    <select id="selectPageByDept" resultMap="selectPage">
+        select emp_Id, emp_Name, login_Name, emp_Pass, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp e
+        where dept_Id = ${id} and emp_Id not in(
+                select emp_Id from emp_role where role_Id = (
+                        select role_Id from role where role_Name = '管理员'))
+    </select>
+
+    <select id="selectPage" resultMap="selectPage">
+        select emp_Id, emp_Name, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp e
+        where dept_Id = ${id} and emp_delete = 1 and emp_Id not in(
+            select emp_Id from emp_role where role_Id = (
+                select role_Id from role where role_Name = '管理员'))
+
+    </select>
+
+
+    <delete id="deleteRoleFromEmp">
+        delete from emp_role where emp_Id = #{empId}
+    </delete>
+
+    <insert id="saveRoleToEmp">
+        insert into emp_role (emp_Id, role_Id)
+
+        <foreach collection="roleId" item="rId" separator="," open="values" >
+            (#{empId}, #{rId})
+        </foreach>
+    </insert>
+
+    <select id="selectEmpCountByDept" parameterType="integer" resultType="java.lang.Integer">
+        select count(*) from emp where dept_Id = #{deptId}
+    </select>
+
+    <update id="deleteEmpFromDept">
+        update emp set emp_Delete = #{delete} where dept_Id = #{deptId}
+    </update>
+
+    <select id="getManager" resultType="com.cjj.bean.Emp">
+        select emp_Id, emp_Name, login_Name, emp_Pass, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp
+        where dept_Id = #{deptId} and emp_Id in
+            (select emp_Id from emp_role where role_Id =
+                (select role_Id from role where role_Name = '部门经理'))
+    </select>
+
+    <select id="getNotManagerEmpId" resultType="java.lang.Integer">
+        SELECT emp_Id FROM emp WHERE superior_id != ''
+    </select>
+
+    <select id="getNotManagerId" resultType="java.lang.Integer">
+        select emp_Id from emp where dept_Id != ''
+    </select>
+
+    <select id="selectEmpById" resultType="com.cjj.bean.Emp">
+        select emp_Id, emp_Name, login_Name, emp_Pass, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp
+    </select>
+
+    <select id="getEmpLikeName" resultMap="selectPage">
+        select  emp_Id, emp_Name, login_Name, emp_Pass, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp
+        where emp_Name like '%${name}%' and emp_Id not in(
+                select emp_Id from emp_role where role_Id = (
+                        select role_Id from role where role_Name = '管理员'))
+    </select>
+
+    <select id="selectPageLikeName" resultMap="selectPage">
+        select emp_Id, emp_Name, email, number, address, sex, emp_Leave, emp_Delete, superior_Id, dept_Id
+        from emp e
+        where dept_Id = ${id} and emp_delete = 1 and emp_Name like '%${name}%' and emp_Id not in(
+                select emp_Id from emp_role where role_Id = (
+                        select role_Id from role where role_Name = '管理员'))
+    </select>
+</mapper>

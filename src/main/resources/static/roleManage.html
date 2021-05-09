@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="x-admin-sm" >
+    <head>
+        <meta charset="UTF-8">
+        <title>欢迎页面角色管理</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <script src="js/axios.min.js"></script>
+        <script src="lib/layui/layui.all.js"></script>
+        <link rel="stylesheet" href="lib/layui/css/layui.css">
+        <script src="/js/jquery.slim.min.js"></script>
+        <link rel="stylesheet" href="/css/bootstrap.css">
+        <script src="js/bootstrap.js"></script>
+
+        <script src="js/xadmin.js"></script>
+
+        <style>
+            .layui-table-cell{
+                height:36px;
+                line-height: 36px;
+            }
+        </style>
+
+        <!--[if lt IE 9]>
+          <script src="js/html5.min.js"></script>
+          <script src="js/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    <body>
+
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15" style="margin-top: 20px">
+                <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+                <div class="input-group col-lg-4">
+                    <input type="text" class="form-control" placeholder="关键字" name="likeName">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" onclick="like()">查询!</button>
+                    </span>
+                </div><!-- /input-group -->
+                <div class="layui-col-md12">
+                    <div class="layui-card" id="main">
+                        <div class="layui-card-header">
+                            <button class="layui-btn" onclick="xadmin.open('添加资源','/role-add.html',600,600)"><i class="layui-icon"></i>添加</button>
+                        </div>
+                        <div class="layui-card-body ">
+                            <table id="table" class="layui-hide"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal -->
+        <div class="modal fade" id="staticBackdrop" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">角色编辑</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="layui-form" action="">
+                            <input name="roleId" id="roleId" type="hidden">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="roleName" required placeholder="角色名称" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item" id="checkBox">
+
+                            </div>
+                            <!--                                                <div class="layui-form-item">-->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="modal" lay-submit lay-filter="formDemo">提交</button>
+                                <!--                                                    </div>-->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script type="text/html" id="btn">
+        <button type="button" onclick="edit(this)" class="btn btn-primary" data-toggle="modal" data-target="#staticBackdrop">
+            编辑
+        </button>
+    </script>
+
+    <script src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+
+        let ur = '/role/role';
+
+        function like() {
+
+            ur = "/role/role?likeName=" + $("input[name=likeName]").val();
+
+            init(ur);
+        }
+
+
+        /**
+         *  表格对象
+         */
+        layui.use('form', function(){
+            var form = layui.form;
+
+
+            //监听提交
+            form.on('submit(formDemo)', function(data){
+                let inputs = $(".layui-input");
+
+                if($(inputs[1]).val() == "" || $(inputs[1]).val().length == 0) {
+                    data.field.roleName = $(inputs[1]).attr("placeholder");
+                }
+                var arr_box = [];
+
+                $('input[type=checkbox]:checked').each(function() {
+
+                    arr_box.push($(this).val());
+
+                });
+
+                data.field.res = arr_box;
+
+                console.log(data)
+                // console.log(JSON.stringify(data.field));
+                // layer.msg(JSON.stringify(data.field));
+                change(data.field);
+                // $('#staticBackdropLabel').modal("hide");
+                return false;
+            });
+
+        });
+
+
+
+        /**
+         *  修改
+         *  使用put请求，
+         *  @param data 异步提交数据
+         */
+        function change(data) {
+            $.ajax({
+                //请求方式
+                type : "put",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : "/role/role",
+                //数据，json字符串
+                data : data,
+                //请求成功
+                success : function(result) {
+                    if(result.data == "true" || result.data == true) {
+                        if(result === true || result === "true") {
+                            layer.alert("增加成功", {
+                                icon: 6
+                            })
+                        } else {
+                            layer.alert("增加失败", {
+                                icon: 3
+                            })
+                        }
+                    }
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+
+            table(ur);
+        }
+
+        /**
+         *  执行更新操作
+         * @param roleId 角色ID
+         * @param isDelete  是否删除
+         */
+        function update(roleId, isDelete) {
+
+            // 更新
+            change({roleId:roleId, roleDelete:isDelete});
+
+        }
+
+        /**
+         *
+         *  初始化表格数据
+         *
+         */
+        function init(url) {
+            layui.use('table', function(){
+                var table = layui.table;
+
+                table.render({
+                    elem: '#table'
+                    ,url:url
+                    ,type: "GET"
+                    ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                    ,cols: [[
+                        {field:'roleId', title: 'ID', sort: true}
+                        ,{field:'roleName', title: '角色名称'}
+                        ,{field:'resource', title: '管理的资源', align: 'center'} //单元格内容水平居中
+                        ,{field:'roleDelete', title: '状态', align: 'center', templet: function (role) {
+                                var html = "";
+                                if(role.roleDelete == "1"){
+                                    html += '<button type="button" class="btn btn-danger" onclick="update('+role.roleId+',0)">禁用</button>';
+                                } else {
+                                    html += '<button type="button" class="btn btn-danger" onclick="update('+role.roleId+',1)">启用</button>';
+                                }
+                                return html;
+                            }
+                        }
+                        // 通过toolbar导入样式
+                        ,{field: 'button', title: '操作', toolbar: "#btn", align: "center"}
+                    ]]
+                    ,page: true
+                });
+            });
+        }
+
+
+        /**
+         *  当点击编辑时
+         * @param obj   当前那个编辑对象
+         */
+        function edit(obj) {
+            let msg = $(obj).parents("tr").find(".layui-table-cell");
+            let inputs = $(".layui-input");
+
+            for(let i = 1; i < inputs.length; i++) {
+                $(inputs[i]).val("");
+            }
+
+            $.ajax({
+                //请求方式
+                type : "get",
+                //请求的媒体类型
+                // contentType: "application/json;charset=UTF-8",
+                //请求地址
+                url : "/resource/editRole",
+                //数据，json字符串
+                // data : data,
+                //请求成功
+                success : function(result) {
+                    let res = result.data;
+                    const resName = $(msg[2]).text();
+                    let html = "";
+                    for (let i = 0; i < res.length; i++) {
+
+                        if(resName.indexOf(res[i].resName) > -1) {
+
+                            html += "<div class='form-check form-check-inline'>" +
+                                "  <input class='form-check-input' type='checkbox' style='display: inline' id='"+res[i].resId+"' value='"+res[i].resId+"' checked>" +
+                                "  <label class='form-check-label' for='"+res[i].resId+"'>"+res[i].resName+"</label>" +
+                                "</div>";
+                        } else {
+                            html += "<div class='form-check form-check-inline'>" +
+                                "  <input class='form-check-input' type='checkbox' style='display: inline' id='"+res[i].resId+"' value='"+res[i].resId+"'>" +
+                                "  <label class='form-check-label' '"+res[i].resId+"'>"+res[i].resName+"</label>" +
+                                "</div>";
+                        }
+                    }
+                    $("#checkBox").html(html);
+                },
+                //请求失败，包含具体的错误信息
+                error : function(e){
+                    console.log(e.status);
+                    console.log(e.responseText);
+                }
+            });
+
+            $("#roleId").val($(msg[0]).text());
+
+            $(inputs[1]).attr("placeholder", $(msg[1]).text());
+
+        }
+
+
+        /**
+         *  页面加载时执行
+         */
+        $(function (){
+
+            // 初始化
+            init(ur);
+
+        });
+
+
+    </script>
+</html>
