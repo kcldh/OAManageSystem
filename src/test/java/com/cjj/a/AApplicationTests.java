@@ -81,14 +81,12 @@ class AApplicationTests {
 
         System.out.println(integer2 == integer5);
 
-//        System.out.println(resourceService.getResources(new Page<>()).getRecords());
+        List<Integer> resId = new ArrayList<>();
 
-//        List<Integer> resId = new ArrayList<>();
+        resId.add(1);
+        resId.add(2);
 
-//        resId.add(1);
-//        resId.add(2);
-
-//        roleService.saveRoleToRes(resId,3);
+        roleService.saveRoleToRes(resId,3);
 
     }
 
